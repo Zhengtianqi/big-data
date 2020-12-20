@@ -1,0 +1,13 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+thymeleaf:
+  prefix: classpath:/templates/
+  suffix: .html
+  encoding: utf-8
+  servlet:
+    content-type: text/html
+  #开发过程建议关闭缓存
+  cache: false

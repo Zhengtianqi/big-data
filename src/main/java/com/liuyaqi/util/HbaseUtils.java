@@ -2,10 +2,7 @@ package com.liuyaqi.util;
 
 import com.liuyaqi.common.Constants;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -118,7 +115,7 @@ public class HbaseUtils {
      * @param rowKey    行
      * @param colFamily 列族
      * @param col       列限定符
-     * @throw IOException
+     * @throw IOException IO异常
      */
     public void getData(String tableName, String rowKey, String colFamily, String col) throws IOException {
         Table table = connection.getTable(TableName.valueOf(tableName));
@@ -127,6 +124,23 @@ public class HbaseUtils {
         Result result = table.get(get);
         System.out.println(new String(result.getValue(colFamily.getBytes(), col.getBytes())));
         table.close();
+    }
+
+    /**
+     * 获取原始数据
+     *
+     * @param tableName 表名称
+     * @return 返回数据
+     */
+    public ResultScanner getNoDealData(String tableName) {
+        try {
+            Table table = connection.getTable(TableName.valueOf(tableName));
+            Scan scan = new Scan();
+            return  table.getScanner(scan);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 

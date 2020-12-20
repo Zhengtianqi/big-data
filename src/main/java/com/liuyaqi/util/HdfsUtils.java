@@ -66,7 +66,7 @@ public class HdfsUtils {
         while ((line = bufferedReader.readLine()) != null) {
             String[] strArray = line.split(",");
             for (int i = 1; i < strArray.length; i++) {
-                String dateTime = strArray[1].replaceAll("-07:00", "");
+                String dateTime = strArray[1].replaceAll("-07:00", "").replace("-08:00", "");
                 allData.add(hbaseUtils.oneData("travel", dateTime, "number_people", "", strArray[0]));
                 allData.add(hbaseUtils.oneData("travel", dateTime, "factor", "date", dateTime));
                 allData.add(hbaseUtils.oneData("travel", dateTime, "factor", "day_of_week", strArray[3]));
