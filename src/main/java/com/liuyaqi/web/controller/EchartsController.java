@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 
@@ -18,7 +17,7 @@ import java.util.List;
 @RequestMapping(value = "/e")
 public class EchartsController {
 
-    @Resource
+    @Autowired
     private EchartsService echartsService;
 
     @GetMapping(value = "/index")
