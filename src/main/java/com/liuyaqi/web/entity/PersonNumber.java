@@ -2,7 +2,7 @@ package com.liuyaqi.web.entity;
 
 import java.io.Serializable;
 
-public class TravelNumber implements Serializable {
+public class PersonNumber implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String date;

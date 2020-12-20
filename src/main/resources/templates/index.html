@@ -7,35 +7,18 @@
     <link th:href="@{/css/bootstrap.css}" rel="stylesheet" type="text/css">
     <!--css end-->
 
-    <title>小区人员管理系统</title>
+    <title>《基于体育馆人数数据集离线计算仓库的数据分析、挖掘与可视化系统》</title>
 </head>
 <body>
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
-
                 <button class="navbar-toggler" type="button" data-toggle="collapse"
                         data-target="#bs-example-navbar-collapse-1">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <a class="navbar-brand" href="#">小区人员管理系统</a>
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="navbar-nav">
-                        <li class="nav-item active">
-                            <div class="input-append">
-                                姓名：
-                                <input class="span4" id="name_search" type="text">
-                                <button class="btn bg-dark text-white" type="button" href="#"
-                                        th:onclick="serachPersonModal()">搜索
-                                </button>
-                                <button class="btn bg-primary text-white" data-toggle="modal"
-                                        data-target="#addPersonModal">增加
-                                </button>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
+                <a class="navbar-brand" href="#">基于体育馆人数数据集离线计算仓库的数据分析、挖掘与可视化系统</a>
             </nav>
         </div>
     </div>
@@ -43,33 +26,8 @@
         <div class="col-md-2">
         </div>
         <div class="col-md-8">
-            <table class="table">
-                <thead>
-                <tr style="background-color: #fbedce;">
-                    <td>编号</td>
-                    <td>姓名</td>
-                    <td>年龄</td>
-                    <td>是否本小区</td>
-                    <td>操作</td>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="person : ${personList}">
-                    <td th:text="${person.id}"></td>
-                    <td th:text="${person.name}"></td>
-                    <td th:text="${person.age}"></td>
-                    <td th:text="${person.isNeighbourhood}"></td>
-                    <td>
-                        <button class="btn bg-primary text-white"
-                                th:onclick="updateAsk([[${person.id}]]);">修改
-                        </button>
-                        <button class="btn btn-danger text-white"
-                                th:onclick="removeAsk([[${person.id}]]);">删除
-                        </button>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+            <div id="main" style="width: 600px; height: 400px;"></div>
+            <div id="main2" style="width: 600px; height: 400px;"></div>
         </div>
         <div class="col-md-2">
         </div>
@@ -79,224 +37,168 @@
 <!--jquery.js需要在bootstrap.js之前,不然会报错.bootstrap会用到jquery的库-->
 <script th:src="@{/js/jquery-3.3.1.js}"></script>
 <script th:src="@{/js/bootstrap.js}"></script>
-<script charset="utf-8">
+<script th:src="@{/js/echarts.min.js}"></script>
+<script type="text/javascript">
     let ctx = '[[${#httpServletRequest.getContextPath()}]]';
+    $(function () {
+        // 基于准备好的dom，初始化echarts实例
+        let myChart = echarts.init(document.getElementById('main'));
+        let myChart2 = echarts.init(document.getElementById('main2'));
+        showContent();
+        showContent2();
 
-    /*添加*/
-    function addPerson() {
-        let id = $("#id").val();
-        let name = $("#name").val();
-        let age = $("#age").val();
-        let isNeighbourhood = $("#isNeighbourhood").val();
-        $.ajax({
-            url: ctx + "/addPerson",
-            type: "POST",
-            data: {
-                "id": id,
-                "name": name,
-                "age": age,
-                "isNeighbourhood": isNeighbourhood
-            },
-            dataType: "text",
-            success: function (data) {
-                if (data === "success") {
-                    alert("保存成功！");
-                    setTimeout(function () {
-                        //让打开这个窗口的父窗口刷新，然后本子窗口关闭！
-                        window.parent.location.reload();
-                    }, 1000);
-                } else if (data === "exists") {
-                    alert("该编号已经存在！");
-                } else {
-                    alert("添加错误！");
-                }
-            }
-        });
-    }
-
-
-    /*修改前弹窗*/
-    function updateAsk(id) {
-        if (id != "" && id != null) {
+        function showContent() {
             $.ajax({
-                url: ctx + "/getPersonById",
-                type: "GET",
-                data: {
-                    "id": id
-                },
-                dataType: "text",
+                type: "get",
+                url: ctx + "/f/getNumberOfPerson",
+                async: false,
                 success: function (data) {
-                    let json = JSON.parse(data);
-                    for (let key in json) {
-                        $("#" + key + "_update").val(json[key]);
+                    let personNumber = data
+                    console.log(personNumber)
+                    let option = {
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data: ['2015', '2016', '2017']
+                        },
+                        toolbox: {
+                            show: true,
+                            feature: {
+                                mark: {show: true},
+                                dataView: {show: true, readOnly: false},
+                                magicType: {show: true, type: ['line', 'bar']},
+                                restore: {show: true},
+                                saveAsImage: {show: true}
+                            }
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [{
+                            name: '2015',
+                            type: 'bar',
+                            data: []
+                        }, {
+                            name: '2016',
+                            type: 'bar',
+                            data: []
+                        }, {
+                            name: '2017',
+                            type: 'bar',
+                            data: []
+                        }]
+                    };
+                    for (let i = 0; i < personNumber.length; i++) {
+                        let date = personNumber[i].date
+                        let number = personNumber[i].number
+                        if (date.search("2015") !== -1) {
+                            option.series[0].data.push(number)
+                        }
+                        if (date.search("2016") !== -1) {
+                            option.series[1].data.push(number)
+                        }
+                        if (date.search("2017") !== -1) {
+                            option.series[2].data.push(number)
+                        }
                     }
-                    $('#updatePersonModal').modal('show');
+                    // 使用刚指定的配置项和数据显示图表。
+                    myChart.setOption(option);
                 }
-            });
-        } else {
-            alert("修改失败！");
+            })
         }
-    }
 
-    /*修改*/
-    function updatePerson() {
-        let id = $("#id_update").val();
-        let name = $("#name_update").val();
-        let age = $("#age_update").val();
-        let isNeighbourhood = $("#isNeighbourhood_update").val();
-
-        $.ajax({
-            url: ctx + "/updatePerson",
-            type: "POST",
-            data: {
-                "id": id,
-                "name": name,
-                "age": age,
-                "isNeighbourhood": isNeighbourhood
-            },
-            dataType: "text",
-            success: function (data) {
-                if (data === "success") {
-                    setTimeout(function () {
-                        //让打开这个窗口的父窗口刷新，然后本子窗口关闭！
-                        window.parent.location.reload();
-                    }, 1000);
-                } else {
-                    alert("修改失败！");
-                }
-            }
-        });
-    }
-
-    /*删除前提示*/
-    function removeAsk(id) {
-        if (id !== "" && id !== null) {
-            $("#removePersonId").val(id);
-            $('#removePersonModal').modal('show');
-        } else {
-            alert("删除失败！");
-        }
-    }
-
-    /*删除*/
-    function removePerson() {
-        let id = $("#removePersonId").val();
-        if (id !== "" && id !== null) {
+        function showContent2() {
             $.ajax({
-                url: ctx + "/deletePerson",
-                type: "POST",
-                data: {
-                    "id": id
-                },
-                dataType: "text",
+                type: "get",
+                url: ctx + "/f/getNumberOfPersonAboutFactor",
+                async: false,
                 success: function (data) {
-                    $('#removePersonModal').modal('hide');
-                    setTimeout(function () {
-                        //让打开这个窗口的父窗口刷新，然后本子窗口关闭！
-                        window.parent.location.reload();
-                    }, 1000);
+                    let numberOfPersonAboutFactor = data
+                    console.log(numberOfPersonAboutFactor)
+                    let option = {
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data: ['2015', '2016', '2017']
+                        },
+                        toolbox: {
+                            show: true,
+                            feature: {
+                                mark: {show: true},
+                                dataView: {show: true, readOnly: false},
+                                magicType: {show: true, type: ['line', 'bar']},
+                                restore: {show: true},
+                                saveAsImage: {show: true}
+                            }
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: []
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [{
+                            name: 'numberPeople',
+                            type: 'bar',
+                            data: []
+                        }, {
+                            name: 'dayOfWeek',
+                            type: 'bar',
+                            data: []
+                        }, {
+                            name: 'isWeekend',
+                            type: 'bar',
+                            data: []
+                        }, {
+                            name: 'isHoliday',
+                            type: 'bar',
+                            data: []
+                        }, {
+                            name: 'temperature',
+                            type: 'bar',
+                            data: []
+                        }, {
+                            name: 'isStartOfSemester',
+                            type: 'bar',
+                            data: []
+                        }, {
+                            name: 'isDuringSemester',
+                            type: 'bar',
+                            data: []
+                        }]
+                    };
+                    for (let i = 0; i < numberOfPersonAboutFactor.length; i++) {
+                        let date = numberOfPersonAboutFactor[i].date
+                        let numberPeople = numberOfPersonAboutFactor[i].numberPeople
+                        let dayOfWeek = numberOfPersonAboutFactor[i].dayOfWeek
+                        let isWeekend = numberOfPersonAboutFactor[i].isWeekend
+                        let isHoliday = numberOfPersonAboutFactor[i].isHoliday
+                        let temperature = numberOfPersonAboutFactor[i].temperature
+                        let isStartOfSemester = numberOfPersonAboutFactor[i].isStartOfSemester
+                        let isDuringSemester = numberOfPersonAboutFactor[i].isDuringSemester
+                        option.xAxis.data.push(date)
+                        option.series[0].data.push(numberPeople)
+                        option.series[1].data.push(dayOfWeek)
+                        option.series[2].data.push(isWeekend)
+                        option.series[3].data.push(isHoliday)
+                        option.series[4].data.push(temperature)
+                        option.series[5].data.push(isStartOfSemester)
+                        option.series[6].data.push(isDuringSemester)
+                    }
+                    // 使用刚指定的配置项和数据显示图表。
+                    myChart2.setOption(option);
                 }
-            });
-        } else {
-            alert("删除失败！");
+            })
         }
-    }
-
-    /*删除返回*/
-    function removePersonReturn() {
-        $("#removePersonId").val("");
-        $('#removePersonModal').modal('hide');
-    }
-
-    /*搜索*/
-    function serachPersonModal() {
-        let name = $("#name_search").val();
-        window.location.href = ctx + "/index?name=" + name;
-    }
-
+    })
 </script>
 <!--js end-->
-
-<!--隐藏的DIV-->
-<div>
-    <!-- 添加模态框（Modal） -->
-    <div class="modal fade" id="addPersonModal" tabindex="-1" role="dialog" aria-labelledby="addPersonModal"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">小区人员添加</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                </div>
-                <div class="modal-body">
-                    编号: <input class="span4" id="id" type="text"><a style="color: red">*</a><br>
-                    姓名: <input class="span4" id="name" type="text"><a style="color: red">*</a><br>
-                    年龄: <input class="span4" id="age" type="text"><a style="color: red">*</a><br>
-                    是否本小区:
-                    <select class="span4" id="isNeighbourhood">
-                        <option value="是">是</option>
-                        <option value="否">否</option>
-                    </select><a style="color: red">*</a><br>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" th:onclick="addPerson()">保存</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal -->
-    </div>
-    <!-- 修改模态框（Modal） -->
-    <div class="modal fade" id="updatePersonModal" tabindex="-1" role="dialog"
-         aria-labelledby="updatePersonModal"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="ModalLabel">小区人员修改</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <input class="span4" id="id_update" type="text" value="" style="display: none;">
-                    姓名: <input class="span4" id="name_update" type="text" value=""><a style="color: red">*</a><br>
-                    年龄: <input class="span4" id="age_update" type="text" value=""><a style="color: red">*</a><br>
-                    是否本小区:
-                    <select class="span4" id="isNeighbourhood_update">
-                        <option value="是">是</option>
-                        <option value="否">否</option>
-                    </select><a style="color: red">*</a><br>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" th:onclick="updatePerson()">保存</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal -->
-    </div>
-    <!-- 删除确认模态框（Modal） -->
-    <div class="modal fade" id="removePersonModal" tabindex="-1" role="dialog"
-         aria-labelledby="removePersonModal"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="deleteModalLabel">确认框</h4>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label class="control-label">确定要删除吗？</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" th:onclick="removePerson()">确认</button>
-                    <button type="button" class="btn btn-default" th:onclick="removePersonReturn()">返回
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <input id="removePersonId" style="display: none;"/>
-</div>
 </body>
 </html>

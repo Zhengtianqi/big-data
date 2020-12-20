@@ -1,13 +1,12 @@
 package com.liuyaqi.util;
 
 import com.liuyaqi.common.Constants;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -117,13 +116,18 @@ public class HbaseUtils {
      * @param col       列限定符
      * @throw IOException IO异常
      */
-    public void getData(String tableName, String rowKey, String colFamily, String col) throws IOException {
-        Table table = connection.getTable(TableName.valueOf(tableName));
-        Get get = new Get(rowKey.getBytes());
-        get.addColumn(colFamily.getBytes(), col.getBytes());
-        Result result = table.get(get);
-        System.out.println(new String(result.getValue(colFamily.getBytes(), col.getBytes())));
-        table.close();
+    public String getData(String tableName, String rowKey, String colFamily, String col) {
+        Table table = null;
+        try {
+            table = connection.getTable(TableName.valueOf(tableName));
+
+            Get get = new Get(rowKey.getBytes());
+            get.addColumn(colFamily.getBytes(), col.getBytes());
+            Result result = table.get(get);
+            return new String(result.getValue(colFamily.getBytes(), col.getBytes()));
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     /**
@@ -136,9 +140,8 @@ public class HbaseUtils {
         try {
             Table table = connection.getTable(TableName.valueOf(tableName));
             Scan scan = new Scan();
-            return  table.getScanner(scan);
+            return table.getScanner(scan);
         } catch (IOException e) {
-            e.printStackTrace();
             return null;
         }
     }
